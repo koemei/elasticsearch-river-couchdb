@@ -223,7 +223,7 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
         closed = true;
     }
 
-    private void processingView(String index, String type, String id, String routing, BulkRequestBuilder bulk)
+    private void processingView(String index, String type, String id, String routing, String parent, BulkRequestBuilder bulk)
     {
       String file = new StringBuilder().append("/").append(this.couchDb).append("/_design/").append(this.couchView).append("?key=%22").append(id).append("%22").toString();
       String view = fetchURL(file);
@@ -384,7 +384,7 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
 					this.logger.trace("processing view [index ]: [{}]/[{}]/[{}], view {}", index, type, id,	this.couchView);
 				}
 
-				processingView(index, type, id, extractRouting(ctx), bulk);
+				processingView(index, type, id, extractRouting(ctx), extractParent(ctx), bulk);
 			}
 		}
 
