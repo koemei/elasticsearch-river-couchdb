@@ -70,7 +70,7 @@ public class CouchdbRiverViewTest {
         				.field("port", port)
         				.field("db", db)
         				.field("view", view)
-        				.field("viewIgnoreRemove", viewIgnoreRemove)
+        				.field("view_ignore_remove", viewIgnoreRemove)
         			.endObject()
         		.endObject();
         node.client().prepareIndex("_river", db, "_meta").setSource(xb).execute().actionGet();
