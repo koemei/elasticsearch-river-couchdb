@@ -92,6 +92,7 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
     private final int throttleSize;
 
     private final ExecutableScript script;
+    private final ExecutableScript scriptView;
 
     private volatile Thread slurperThread;
     private volatile Thread indexerThread;
@@ -149,6 +150,17 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
             } else {
                 script = null;
             }
+
+            if (couchSettings.containsKey("script_view")) {
+                String scriptType = "js";
+                if(couchSettings.containsKey("script_view_type")) {
+                    scriptType = couchSettings.get("script_view_type").toString();
+                }
+
+                scriptView = scriptService.executable(scriptType, couchSettings.get("script_view").toString(), Maps.newHashMap());
+            } else {
+                scriptView = null;
+            }
         } else {
             couchProtocol = "http";
             couchHost = "localhost";
@@ -162,6 +174,7 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
             noVerify = false;
             basicAuth = null;
             script = null;
+            scriptView = null;
         }
 
         if (settings.settings().containsKey("index")) {
@@ -272,12 +285,24 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
 								new Object[] { value });
 					}
 
+					if (scriptView != null) {
+					    scriptView.setNextVar("view", value);
+					    try {
+					        scriptView.run();
+					        // we need to unwrap the ctx...
+					        value = (Map<String, Object>) scriptView.unwrap(value);
+					    } catch (Exception e) {
+					        logger.warn("failed to scriptView process {}, ignoring", e, value);
+					    }
+					}
+
 					bulk.add(Requests
 							.indexRequest(index)
 							.type(type)
 							.id(new StringBuilder().append(id).append("_")
 									.append(rownum++).toString()).source(value)
-							.routing(routing));
+							.routing(routing)
+							.parent(parent));
 				}
 			}
 		}
