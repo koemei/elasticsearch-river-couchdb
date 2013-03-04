@@ -372,7 +372,11 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
             if (logger.isTraceEnabled()) {
                 logger.trace("processing [delete]: [{}]/[{}]/[{}]", index, type, id);
             }
-            bulk.add(deleteRequest(index).type(type).id(id).routing(extractRouting(ctx)).parent(extractParent(ctx)));
+            if (this.couchView == null) {
+                bulk.add(deleteRequest(index).type(type).id(id).routing(extractRouting(ctx)).parent(extractParent(ctx)));
+            } else {
+                processingView(index, type, id, extractRouting(ctx), extractParent(ctx), bulk);
+            }
 		} else {
 			String index = extractIndex(ctx);
 			String type = extractType(ctx);
