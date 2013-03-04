@@ -160,26 +160,28 @@ You can use it in your couchDb river as follow :
     "port":"5984",
     "db":"mydb",
     "view":"myviews/_view/myview",
-    "viewIgnoreRemove":false
+    "view_ignore_remove":false
   }
 }
 ```
 
 New options :
 
-* `view` : if not null, couchDB river will not fetch content from `_changes` API but only IDs and then will use the view to retrieve rows using the ID as a key. By default : null
+* `view` : if not null, couchDB river will not fetch content from `_changes` API but only IDs and then will use the
+view to retrieve rows using the ID as a key. By default : null
 
-* `viewIgnoreRemove` : ask the river to ignore removal of rows if there is less rows after a document update. By default : false so non existing rows will be removed from elastic search.
+* `view_ignore_remove` : ask the river to ignore removal of rows if there is less rows after a document update.
+By default : false so non existing rows will be removed from elastic search.
 
 For example, with the 3 rows described earlier, if you push a new version of the document 1234 in couchDB with only 2 docs, 
 
-If `viewIgnoreRemove` is false (default), then
+If `view_ignore_remove` is false (default), then
 
 * 1234_1 will be updated
 * 1234_2 will be updated
 * 1234_3 will be removed
 
-If `viewIgnoreRemove` is true, then
+If `view_ignore_remove` is true, then
 
 * 1234_1 will be updated
 * 1234_2 will be updated

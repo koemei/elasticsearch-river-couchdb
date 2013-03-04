@@ -129,7 +129,7 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
                 couchFilterParamsUrl = null;
             }
             couchView = XContentMapValues.nodeStringValue(couchSettings.get("view"), null);
-            couchViewIgnoreRemove = XContentMapValues.nodeBooleanValue(couchSettings.get("viewIgnoreRemove"), false);
+            couchViewIgnoreRemove = XContentMapValues.nodeBooleanValue(couchSettings.get("view_ignore_remove"), false);
             couchIgnoreAttachments = XContentMapValues.nodeBooleanValue(couchSettings.get("ignore_attachments"), false);
             if (couchSettings.containsKey("user") && couchSettings.containsKey("password")) {
                 String user = couchSettings.get("user").toString();
