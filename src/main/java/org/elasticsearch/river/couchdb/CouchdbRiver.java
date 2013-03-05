@@ -236,7 +236,7 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
         closed = true;
     }
 
-    private void processingView(String index, String type, String id, String routing, String parent, BulkRequestBuilder bulk)
+    private List<Object> getViewRows(String id)
     {
       String file = new StringBuilder().append("/").append(this.couchDb).append("/_design/").append(this.couchView).append("?key=%22").append(id).append("%22").toString();
       String view = fetchURL(file);
@@ -248,16 +248,20 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
       catch (IOException e) {
         this.logger.warn("failed to parse {}", e, new Object[] { view });
       }
+      return getListFromJsonNode(ctx, "rows");
+    }
 
-      List<Object> rows = getListFromJsonNode(ctx, "rows");
+    private void doDeleteFromView(List<Object> rows, String index, String type, String id, String routing, BulkRequestBuilder bulk)
+    {
+
       if (!this.couchViewIgnoreRemove)
       {
         long oldSize = 0L;
         try
         {
-        	PrefixQueryBuilder pqb = QueryBuilders.prefixQuery(
-        			new StringBuilder().append(type).append("._id").toString(),
-        			new StringBuilder().append(id).append("_").toString());
+            PrefixQueryBuilder pqb = QueryBuilders.prefixQuery(
+                new StringBuilder().append(type).append("._id").toString(),
+                new StringBuilder().append(id).append("_").toString());
 
           CountRequestBuilder count = this.client.prepareCount(new String[] { index }).setQuery(pqb);
           CountResponse response = count.execute().actionGet();
@@ -272,6 +276,18 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
           }
         }
       }
+    }
+
+    private void deletingFromView(String index, String type, String id, String routing, BulkRequestBuilder bulk)
+    {
+      doDeleteFromView(getViewRows(id), index, type, id, routing, bulk);
+    }
+
+    private void processingView(String index, String type, String id, String routing, String parent, BulkRequestBuilder bulk)
+    {
+      List<Object> rows = getViewRows(id);
+
+      doDeleteFromView(rows, index, type, id, routing, bulk);
 
       int rownum = 1;
       for (Iterator<Object> it = rows.iterator(); it.hasNext(); ) { 
@@ -375,7 +391,7 @@ public class CouchdbRiver extends AbstractRiverComponent implements River {
             if (this.couchView == null) {
                 bulk.add(deleteRequest(index).type(type).id(id).routing(extractRouting(ctx)).parent(extractParent(ctx)));
             } else {
-                processingView(index, type, id, extractRouting(ctx), extractParent(ctx), bulk);
+                deletingFromView(index, type, id, extractRouting(ctx), bulk);
             }
 		} else {
 			String index = extractIndex(ctx);
