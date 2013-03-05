@@ -187,6 +187,29 @@ If `view_ignore_remove` is true, then
 * 1234_2 will be updated
 * 1234_3 will not be updated
 
+Script Views
+============
+
+The parameter `script_view` allows to create script filters on the view
+results. It's working like the `script` parameter, excepted that:
+
+* you have access to the view result, and not the document,
+* you must use `view` instead of `ctx`.
+
+Here is a example which set the field `_parent` to the same value as the field
+`field1` of the view:
+
+``` javascript
+{
+    "type": "couchdb",
+    "couchdb": {
+        ...
+        "view": "myviews/_view/myview",
+        "script_view": "view._parent = view.field1"
+    }
+}
+```
+
 License
 =======
 
